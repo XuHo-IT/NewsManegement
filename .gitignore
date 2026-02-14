@@ -26,3 +26,7 @@ Thumbs.db
 
 # DotNet tools
 .dotnet/
+
+# Local settings
+**/appsettings.Local.json
+**/appsettings.*.Local.json
