@@ -1,0 +1,14 @@
+@{
+    var currentUser = Context.Session.GetString("UserEmail");
+    var userRole = Context.Session.GetString("UserRole") ?? "User";
+}
+
+<div class="premium-card p-8 rounded-xl">
+    <div class="flex items-center justify-between">
+        <div>
+            <h3 class="text-lg font-semibold text-obsidian mb-1">Welcome back!</h3>
+            <p class="text-subtle text-sm">Logged in as <span class="font-medium text-obsidian">@currentUser</span></p>
+            <p class="text-subtle text-xs mt-2">Role: <span class="inline-block px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs font-medium">@userRole</span></p>
+        </div>
+        <div class="text-4xl">👋</div>
+    </div>

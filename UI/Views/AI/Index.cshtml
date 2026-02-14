@@ -1,0 +1,343 @@
+@{
+    ViewData["Title"] = "AI Content Assistant";
+    var authToken = Context.Session.GetString("JwtToken");
+    if (string.IsNullOrEmpty(authToken))
+    {
+        Context.Response.Redirect("/Home/Login");
+        return;
+    }
+}
+
+<div class="container py-4 pt-24">
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">✨ AI Content Assistant</h4>
+                </div>
+                <div class="card-body">
+                    <div class="mb-4">
+                        <label for="contentInput" class="form-label">Article Content</label>
+                        <textarea class="form-control" id="contentInput" rows="6" placeholder="Paste your article content here..."></textarea>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <button class="btn btn-primary w-100" onclick="generateTitle()">
+                                <i class="bi bi-pen"></i> Generate Title
+                            </button>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <button class="btn btn-info w-100" onclick="generateSummary()">
+                                <i class="bi bi-file-text"></i> Generate Summary
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <button class="btn btn-warning w-100" onclick="checkGrammar()">
+                                <i class="bi bi-pencil-square"></i> Check Grammar
+                            </button>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <button class="btn btn-success w-100" onclick="generateTags()">
+                                <i class="bi bi-tags"></i> Generate Tags
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-12 mb-3">
+                            <button class="btn btn-secondary w-100" onclick="suggestCategory()">
+                                <i class="bi bi-folder"></i> Suggest Category
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <button class="btn btn-danger w-100" onclick="analyzeContent()">
+                                <i class="bi bi-graph-up"></i> Analyze Content
+                            </button>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <button class="btn btn-outline-secondary w-100" onclick="clearResults()">
+                                <i class="bi bi-x-circle"></i> Clear Results
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card sticky-top" style="top: 20px;">
+                <div class="card-header bg-dark text-white">
+                    <h5 class="mb-0">📊 Results</h5>
+                </div>
+                <div class="card-body" id="resultsContainer">
+                    <p class="text-muted">Results will appear here...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Results Modals -->
+    <div id="generatedTitle" class="mb-3" style="display: none;">
+        <h6>Generated Title</h6>
+        <div class="alert alert-info">
+            <span id="titleResult"></span>
+        </div>
+        <button class="btn btn-sm btn-primary" onclick="copyToClipboard('titleResult')">Copy</button>
+    </div>
+
+    <div id="generatedSummary" class="mb-3" style="display: none;">
+        <h6>Generated Summary</h6>
+        <div class="alert alert-info">
+            <span id="summaryResult"></span>
+        </div>
+        <button class="btn btn-sm btn-primary" onclick="copyToClipboard('summaryResult')">Copy</button>
+    </div>
+
+    <div id="grammarResults" class="mb-3" style="display: none;">
+        <h6>Grammar Check Results</h6>
+        <div id="grammarResult" class="alert alert-warning"></div>
+    </div>
+
+    <div id="tagsResult" class="mb-3" style="display: none;">
+        <h6>Generated Tags</h6>
+        <div id="tagsList" class="alert alert-success"></div>
+    </div>
+
+    <div id="categoryResult" class="mb-3" style="display: none;">
+        <h6>Suggested Category</h6>
+        <div id="categoryName" class="alert alert-success"></div>
+    </div>
+
+    <div id="analysisResults" class="mb-3" style="display: none;">
+        <h6>Content Analysis</h6>
+        <div id="analysisDetail" class="alert alert-secondary"></div>
+    </div>
+</div>
+
+<script>
+    function showLoading(message = 'Processing...') {
+        const container = document.getElementById('resultsContainer');
+        container.innerHTML = `<div class="spinner-border spinner-border-sm text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div> ${message}`;
+    }
+
+    function generateTitle() {
+        const content = document.getElementById('contentInput').value.trim();
+        if (!content) {
+            alert('Please enter article content first');
+            return;
+        }
+
+        showLoading('Generating title...');
+
+        window.apiFetch('/api/ai/generate-title', {
+            method: 'POST',
+            body: JSON.stringify({ content: content })
+        })
+        .then(r => r.json())
+        .then(data => {
+            document.getElementById('resultsContainer').innerHTML = `
+                <div class="alert alert-success">
+                    <strong>Generated Title:</strong><br>
+                    <h5 class="mt-2">"${data.generatedTitle || 'No title generated'}"</h5>
+                </div>
+                <button class="btn btn-sm btn-primary" onclick="copyText('${data.generatedTitle}')">Copy Title</button>
+            `;
+        })
+        .catch(error => {
+            document.getElementById('resultsContainer').innerHTML = `<div class="alert alert-danger">Error: ${error.message}</div>`;
+        });
+    }
+
+    function generateSummary() {
+        const content = document.getElementById('contentInput').value.trim();
+        if (!content) {
+            alert('Please enter article content first');
+            return;
+        }
+
+        showLoading('Generating summary...');
+
+        window.apiFetch('/api/ai/generate-summary', {
+            method: 'POST',
+            body: JSON.stringify({ content: content })
+        })
+        .then(r => r.json())
+        .then(data => {
+            document.getElementById('resultsContainer').innerHTML = `
+                <div class="alert alert-info">
+                    <strong>Generated Summary:</strong><br>
+                    <p class="mt-2">${data.generatedSummary || 'No summary generated'}</p>
+                </div>
+                <button class="btn btn-sm btn-primary" onclick="copyText('${data.generatedSummary}')">Copy Summary</button>
+            `;
+        })
+        .catch(error => {
+            document.getElementById('resultsContainer').innerHTML = `<div class="alert alert-danger">Error: ${error.message}</div>`;
+        });
+    }
+
+    function checkGrammar() {
+        const content = document.getElementById('contentInput').value.trim();
+        if (!content) {
+            alert('Please enter article content first');
+            return;
+        }
+
+        showLoading('Checking grammar...');
+
+        window.apiFetch('/api/ai/check-grammar', {
+            method: 'POST',
+            body: JSON.stringify({ content: content })
+        })
+        .then(r => r.json())
+        .then(data => {
+            const issues = data.grammarIssues ? JSON.parse(data.grammarIssues) : [];
+            let html = issues.length > 0 
+                ? `<p><strong>${issues.length} issues found:</strong></p><ul>`
+                : '<p class="text-success">✓ No grammar issues detected!</p>';
+            
+            issues.forEach(issue => {
+                html += `<li>${issue}</li>`;
+            });
+            html += '</ul>';
+
+            document.getElementById('resultsContainer').innerHTML = `<div class="alert alert-warning">${html}</div>`;
+        })
+        .catch(error => {
+            document.getElementById('resultsContainer').innerHTML = `<div class="alert alert-danger">Error: ${error.message}</div>`;
+        });
+    }
+
+    function generateTags() {
+        const content = document.getElementById('contentInput').value.trim();
+        if (!content) {
+            alert('Please enter article content first');
+            return;
+        }
+
+        showLoading('Generating tags...');
+
+        window.apiFetch('/api/ai/generate-tags', {
+            method: 'POST',
+            body: JSON.stringify({ content: content })
+        })
+        .then(r => {
+            if (!r.ok) {
+                return r.text().then(text => {
+                    throw new Error(text || 'Failed to generate tags');
+                });
+            }
+            return r.json();
+        })
+        .then(data => {
+            // ✅ FIX: data.tags đã là array, không cần parse
+            const tags = Array.isArray(data.tags) ? data.tags : [];
+            let html = tags.length > 0 ? '' : '<p class="text-muted">No tags suggested</p>';
+            
+            tags.forEach(tag => {
+                html += `<span class="badge bg-primary me-2 mb-2">${tag}</span>`;
+            });
+
+            document.getElementById('resultsContainer').innerHTML = `<div class="alert alert-success">${html}</div>`;
+        })
+        .catch(error => {
+            document.getElementById('resultsContainer').innerHTML = `<div class="alert alert-danger">Error: ${error.message}</div>`;
+        });
+    }
+
+    function suggestCategory() {
+        const content = document.getElementById('contentInput').value.trim();
+        if (!content) {
+            alert('Please enter article content first');
+            return;
+        }
+
+        showLoading('Suggesting category...');
+
+        window.apiFetch('/api/ai/suggest-category', {
+            method: 'POST',
+            body: JSON.stringify({ title: '', content: content }) // ✅ FIX: Backend require cả title và content
+        })
+        .then(r => {
+            if (!r.ok) {
+                return r.text().then(text => {
+                    throw new Error(text || 'Failed to suggest category');
+                });
+            }
+            return r.json();
+        })
+        .then(data => {
+            // ✅ FIX: Backend trả về CategorySuggestion object
+            const categoryName = data.categoryName || data.suggestedCategory || 'Unable to suggest';
+            document.getElementById('resultsContainer').innerHTML = `
+                <div class="alert alert-success">
+                    <strong>Suggested Category:</strong><br>
+                    <h6 class="mt-2">${categoryName}</h6>
+                </div>
+            `;
+        })
+        .catch(error => {
+            document.getElementById('resultsContainer').innerHTML = `<div class="alert alert-danger">Error: ${error.message}</div>`;
+        });
+    }
+
+    function analyzeContent() {
+        const content = document.getElementById('contentInput').value.trim();
+        if (!content) {
+            alert('Please enter article content first');
+            return;
+        }
+
+        showLoading('Analyzing content...');
+
+        window.apiFetch('/api/ai/analyze-content', {
+            method: 'POST',
+            body: JSON.stringify({ content: content })
+        })
+        .then(r => r.json())
+        .then(data => {
+            document.getElementById('resultsContainer').innerHTML = `
+                <div class="alert alert-secondary">
+                    <strong>Content Analysis:</strong><br>
+                    <small>
+                        <p class="mt-2"><strong>Word Count:</strong> ${data.wordCount || 0}</p>
+                        <p><strong>Sentiment:</strong> ${data.sentiment || 'Unknown'}</p>
+                        <p><strong>Quality Score:</strong> ${data.qualityScore || 'N/A'}/100</p>
+                        <p><strong>Analysis:</strong> ${data.analysis || 'No analysis available'}</p>
+                    </small>
+                </div>
+            `;
+        })
+        .catch(error => {
+            document.getElementById('resultsContainer').innerHTML = `<div class="alert alert-danger">Error: ${error.message}</div>`;
+        });
+    }
+
+    function clearResults() {
+        document.getElementById('contentInput').value = '';
+        document.getElementById('resultsContainer').innerHTML = '<p class="text-muted">Results will appear here...</p>';
+    }
+
+    function copyToClipboard(elementId) {
+        const text = document.getElementById(elementId).innerText;
+        navigator.clipboard.writeText(text).then(() => {
+            alert('Copied to clipboard!');
+        });
+    }
+
+    function copyText(text) {
+        navigator.clipboard.writeText(text).then(() => {
+            alert('Copied to clipboard!');
+        });
+    }
+
+</script>

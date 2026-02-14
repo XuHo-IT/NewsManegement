@@ -1,0 +1,133 @@
+@{
+    ViewData["Title"] = "Edit Category";
+    var authToken = Context.Session.GetString("JwtToken");
+    if (string.IsNullOrEmpty(authToken))
+    {
+        Context.Response.Redirect("/Home/Login");
+        return;
+    }
+}
+
+<div class="container py-4 pt-24">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">Edit Category</h4>
+                </div>
+                <div class="card-body">
+                    <form id="editForm">
+                        <div class="mb-3">
+                            <label for="categoryID" class="form-label">Category ID</label>
+                            <input type="text" class="form-control" id="categoryID" readonly>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="categoryName" class="form-label">Category Name *</label>
+                            <input type="text" class="form-control" id="categoryName" name="categoryName" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="categoryDescription" class="form-label">Description</label>
+                            <textarea class="form-control" id="categoryDescription" name="categoryDescription" rows="4"></textarea>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="categoryImage" class="form-label">Image</label>
+                            <input type="file" class="form-control" id="categoryImage" name="image" accept="image/*">
+                            <small class="text-muted">Upload new image to replace current (optional)</small>
+                            <div id="currentImage" class="mt-2"></div>
+                        </div>
+
+                        <div class="mb-3 form-check">
+                            <input type="checkbox" class="form-check-input" id="isActive" name="isActive">
+                            <label class="form-check-label" for="isActive">
+                                Active
+                            </label>
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-check-lg"></i> Save Changes
+                            </button>
+                            <a href="/Categories/Index" class="btn btn-secondary">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const categoryId = '@(ViewContext.RouteData.Values["id"] ?? string.Empty)';
+
+    document.addEventListener('DOMContentLoaded', function() {
+        loadCategory();
+    });
+
+    function loadCategory() {
+        const token = window.getAuthToken();
+        fetch(`${window.API_BASE_URL}/api/categories/${categoryId}`, {
+            headers: {
+                ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+            }
+        })
+            .then(response => {
+                if (!response.ok) throw new Error('Failed to load category');
+                return response.json();
+            })
+            .then(category => {
+                if (!category) throw new Error('Category not found');
+                document.getElementById('categoryID').value = category.categoryID || '';
+                document.getElementById('categoryName').value = category.categoryName || '';
+                document.getElementById('categoryDescription').value = category.categoryDescription || category.categoryDesciption || '';
+                document.getElementById('isActive').checked = category.isActive === true;
+                
+                if (category.imageUrl) {
+                    document.getElementById('currentImage').innerHTML = 
+                        `<img src="${category.imageUrl}" alt="Current image" class="img-thumbnail" style="max-width: 200px;">`;
+                }
+            })
+            .catch(error => {
+                console.error('Error loading category:', error);
+                alert('Error loading category: ' + error.message);
+                window.location.href = '/Categories/Index';
+            });
+    }
+
+    document.getElementById('editForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        const formData = new FormData();
+        formData.append('name', document.getElementById('categoryName').value);
+        formData.append('description', document.getElementById('categoryDescription').value);
+        formData.append('isActive', document.getElementById('isActive').checked);
+        
+        const imageFile = document.getElementById('categoryImage').files[0];
+        if (imageFile) {
+            formData.append('image', imageFile);
+        }
+
+        const token = window.getAuthToken();
+        fetch(`${window.API_BASE_URL}/api/categories/${categoryId}`, {
+            method: 'PUT',
+            headers: {
+                ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+                // Don't set Content-Type - browser will set it with boundary for FormData
+            },
+            body: formData
+        })
+            .then(response => {
+                if (response.ok) {
+                    alert('Category updated successfully!');
+                    window.location.href = '/Categories/Index';
+                } else {
+                    alert('Error updating category');
+                }
+            })
+            .catch(error => {
+                alert('Error: ' + error.message);
+            });
+    });
+</script>

@@ -1,0 +1,325 @@
+@{
+    ViewData["Title"] = "Categories";
+}
+
+<div class="max-w-7xl mx-auto px-6 md:px-12 lg:px-20 pt-24">
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+        <div>
+            <h1 class="font-sans text-4xl font-semibold text-obsidian tracking-tight">Categories</h1>
+            <p class="text-subtle text-base mt-2">Manage article categories</p>
+        </div>
+        @if (Context.Session.GetString("UserRole") == "Staff")
+        {
+            <button class="group relative isolate overflow-hidden bg-black hover:bg-gray-800 text-white text-base font-bold px-8 py-4 rounded-lg shadow-lg ring-2 ring-black/20 transition-all duration-300 ease-in-out hover:scale-[1.05] hover:shadow-xl hover:ring-black/40 active:scale-[0.98] focus:outline-none focus:ring-4 focus:ring-black/30 focus:ring-offset-2" data-bs-toggle="modal" data-bs-target="#categoryModal" onclick="openCreateCategory()">
+                <div class="shimmer-layer absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent z-0 pointer-events-none"></div>
+                <span class="relative z-10">Add Category</span>
+            </button>
+        }
+    </div>
+
+    <!-- Filters and Search -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <input type="text" id="searchInput" class="px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-obsidian/20 focus:border-obsidian bg-white shadow-sm" placeholder="Search by name...">
+        <div class="flex gap-2">
+            <button class="flex-1 px-6 py-3 bg-black hover:bg-gray-800 text-white rounded-lg font-semibold text-sm transition-all shadow-md hover:shadow-lg hover:scale-[1.02] active:scale-[0.98]" onclick="searchCategories()">Search</button>
+            <button class="flex-1 px-6 py-3 bg-black hover:bg-gray-800 text-white rounded-lg font-semibold text-sm transition-all shadow-md hover:shadow-lg hover:scale-[1.02] active:scale-[0.98]" onclick="resetFilters()">Reset</button>
+        </div>
+    </div>
+
+    <!-- Categories Table -->
+    <div class="premium-card rounded-xl overflow-hidden">
+        <div class="px-8 py-6 border-b border-border/50">
+            <h3 class="text-xl font-semibold text-obsidian">Category List</h3>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+                <thead class="border-b border-border/50 bg-canvas">
+                    <tr>
+                        <th class="text-left px-8 py-4 font-semibold text-obsidian">Name</th>
+                        <th class="text-left px-8 py-4 font-semibold text-obsidian">Description</th>
+                        <th class="text-left px-8 py-4 font-semibold text-obsidian">Status</th>
+                        <th class="text-left px-8 py-4 font-semibold text-obsidian">IsActive</th>
+                        <th class="text-left px-8 py-4 font-semibold text-obsidian">Author</th>
+                        <th class="text-left px-8 py-4 font-semibold text-obsidian">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="categoriesBody">
+                    <tr><td colspan="6" class="text-center text-subtle py-8">Loading categories...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Category Modal -->
+<div class="modal fade" id="categoryModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content premium-card border border-border">
+            <div class="modal-header border-b border-border/50 px-8 py-6">
+                <h5 class="modal-title text-xl font-semibold text-obsidian" id="categoryModalTitle">Add Category</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body px-8 py-6">
+                <input type="hidden" id="categoryId" />
+                <div class="mb-4" id="categoryNameContainer">
+                    <label class="block text-sm font-medium text-obsidian mb-2">Category Name *</label>
+                    <input type="text" class="w-full px-4 py-3 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-obsidian/20 bg-white" id="categoryName" required />
+                </div>
+                <div class="mb-4" id="categoryDescriptionContainer">
+                    <label class="block text-sm font-medium text-obsidian mb-2">Description</label>
+                    <textarea class="w-full px-4 py-3 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-obsidian/20 bg-white" id="categoryDescription" rows="3"></textarea>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-obsidian mb-2">Status</label>
+                    <select class="w-full px-4 py-3 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-obsidian/20 bg-white" id="categoryStatus">
+                        <option value="1">Draft</option>
+                        <option value="2">Pending</option>
+                        <option value="3">Approved</option>
+                        <option value="4">Published</option>
+                    </select>
+                </div>
+                <div class="flex items-center gap-2">
+                    <input class="w-4 h-4 border-border rounded" type="checkbox" id="categoryIsActive" checked>
+                    <label class="text-sm text-obsidian" for="categoryIsActive">Active</label>
+                </div>
+            </div>
+            <div class="modal-footer border-t border-border/50 px-8 py-6">
+                <button type="button" class="px-6 py-2.5 border border-border rounded-lg font-medium text-sm hover:bg-canvas transition-colors" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="group relative isolate overflow-hidden bg-black hover:bg-gray-800 text-white text-sm font-semibold px-6 py-2.5 rounded shadow-[0_1px_2px_rgba(0,0,0,0.08)] ring-1 ring-white/10 transition-all duration-500 ease-[cubic-bezier(0.25,1,0.5,1)] hover:scale-[1.02] hover:shadow-[0_8px_24px_-4px_rgba(0,0,0,0.25)] hover:ring-white/20 active:scale-[0.98]" onclick="saveCategory()">
+                    <span class="relative z-10">Save</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            loadCategories();
+        });
+
+        function loadCategories(searchQuery = '') {
+            let endpoint = '/api/categories';
+            let queryParams = [];
+
+            // Add search filter if provided
+            if (searchQuery && searchQuery.trim()) {
+                const searchFilter = `contains(CategoryName, '${searchQuery.trim().replace(/'/g, "''")}')`;
+                queryParams.push(`$filter=${searchFilter}`);
+            }
+
+            if (queryParams.length > 0) {
+                endpoint += '?' + queryParams.join('&');
+            }
+
+            const token = window.getAuthToken();
+            fetch(window.API_BASE_URL + endpoint, {
+                headers: {
+                    ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+                }
+            })
+                .then(response => {
+                    if (!response.ok) throw new Error('Failed to load categories');
+                    return response.json();
+                })
+                .then(data => {
+                    const tbody = document.getElementById('categoriesBody');
+                    tbody.innerHTML = '';
+
+                    if (Array.isArray(data) && data.length > 0) {
+                        const userRole = window.getUserRole();
+                        const currentUserId = window.getCurrentAccountID();
+                        
+                        data.forEach(cat => {
+                            const authorName = cat.createdBy?.accountName || cat.CreatedBy?.AccountName || 'N/A';
+                            const createdById = cat.createdByID || cat.CreatedByID;
+                            
+                            // ✅ FIX: Staff chỉ có thể edit nếu có CreatedByID và là của mình, hoặc nếu là Admin
+                            const canEdit = userRole === 'Admin' || (createdById && userRole === 'Staff' && createdById.toString() === currentUserId);
+                            // ✅ FIX: Dùng CategoryDesciption (typo trong DB)
+                            const description = cat.categoryDesciption || cat.CategoryDesciption || cat.categoryDescription || cat.CategoryDescription || 'N/A';
+                            const categoryStatus = cat.categoryStatus || cat.CategoryStatus || 1;
+                            
+                            // ✅ FIX: Status badge (Draft/Pending)
+                            const statusLabels = { 1: 'Draft', 2: 'Pending', 3: 'Approved', 4: 'Published' };
+                            const statusColors = {
+                                1: 'bg-gray-100 text-gray-700',
+                                2: 'bg-yellow-100 text-yellow-700',
+                                3: 'bg-blue-100 text-blue-700',
+                                4: 'bg-emerald-100 text-emerald-700'
+                            };
+                            const statusLabel = statusLabels[categoryStatus] || 'Unknown';
+                            const statusColor = statusColors[categoryStatus] || 'bg-gray-100 text-gray-700';
+                            const statusBadge = `<span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${statusColor}">${statusLabel}</span>`;
+                            
+                            // ✅ FIX: IsActive badge
+                            const isActiveBadge = cat.isActive 
+                                ? '<span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-emerald-100 text-emerald-700">Active</span>'
+                                : '<span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-red-100 text-red-700">Inactive</span>';
+                            
+                            const editButton = canEdit 
+                                ? `<button class="text-blue-600 hover:text-blue-800 font-medium text-xs" onclick="openEditCategory(${cat.categoryID}, '${(cat.categoryName || '').replace(/'/g, "&#39;")}', '${description.replace(/'/g, "&#39;")}', ${cat.isActive ? 'true' : 'false'}, ${categoryStatus})">Edit</button>`
+                                : '<span class="text-gray-400 text-xs">No permission</span>';
+                            
+                            tbody.innerHTML += `
+                                <tr class="border-b border-border/30 hover:bg-canvas/50 transition-colors">
+                                    <td class="px-8 py-4 text-obsidian font-medium">${cat.categoryName || 'N/A'}</td>
+                                    <td class="px-8 py-4 text-subtle">${description}</td>
+                                    <td class="px-8 py-4">${statusBadge}</td>
+                                    <td class="px-8 py-4">${isActiveBadge}</td>
+                                    <td class="px-8 py-4 text-subtle">${authorName}</td>
+                                    <td class="px-8 py-4 flex gap-2">
+                                        ${editButton}
+                                        ${userRole === 'Admin' ? `<button class="text-red-600 hover:text-red-800 font-medium text-xs" onclick="deleteCategory(${cat.categoryID})">Delete</button>` : ''}
+                                    </td>
+                                </tr>
+                            `;
+                        });
+                    } else {
+                        tbody.innerHTML = '<tr><td colspan="6" class="text-center text-subtle py-8">No categories found</td></tr>';
+                    }
+                })
+                .catch(() => {
+                    document.getElementById('categoriesBody').innerHTML = 
+                        '<tr><td colspan="6" class="text-center text-red-600 py-8">Error loading categories</td></tr>';
+                });
+        }
+
+        function searchCategories() {
+            const searchQuery = document.getElementById('searchInput').value;
+            loadCategories(searchQuery);
+        }
+
+        function resetFilters() {
+            document.getElementById('searchInput').value = '';
+            loadCategories();
+        }
+
+        // Allow Enter key to trigger search
+        document.getElementById('searchInput')?.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                searchCategories();
+            }
+        });
+
+        function openCreateCategory() {
+            const userRole = window.getUserRole();
+            const isAdmin = userRole === 'Admin';
+            
+            document.getElementById('categoryModalTitle').textContent = 'Add Category';
+            document.getElementById('categoryId').value = '';
+            document.getElementById('categoryName').value = '';
+            document.getElementById('categoryDescription').value = '';
+            document.getElementById('categoryStatus').value = '1';
+            document.getElementById('categoryIsActive').checked = true;
+            
+            // Admin không thể create, chỉ Staff
+            if (isAdmin) {
+                alert('Admin cannot create categories. Only Staff can create.');
+                return;
+            }
+            
+            // ✅ FIX: Khi create, chỉ cho phép chọn Draft (1) hoặc Pending (2)
+            const statusSelect = document.getElementById('categoryStatus');
+            statusSelect.innerHTML = '<option value="1">Draft</option><option value="2">Pending</option>';
+            
+            // Show all fields for Staff
+            document.getElementById('categoryNameContainer').style.display = 'block';
+            document.getElementById('categoryDescriptionContainer').style.display = 'block';
+            
+            const modalElement = document.getElementById('categoryModal');
+            const modal = bootstrap.Modal.getOrCreateInstance(modalElement);
+            modal.show();
+        }
+
+        function openEditCategory(id, name, description, isActive, categoryStatus) {
+            const userRole = window.getUserRole();
+            const isAdmin = userRole === 'Admin';
+            
+            document.getElementById('categoryModalTitle').textContent = 'Edit Category';
+            document.getElementById('categoryId').value = id;
+            document.getElementById('categoryName').value = name || '';
+            document.getElementById('categoryDescription').value = description || '';
+            document.getElementById('categoryStatus').value = categoryStatus || '1';
+            document.getElementById('categoryIsActive').checked = isActive === true || isActive === 'true';
+            
+            // ✅ FIX: Khi edit, restore full status options
+            const statusSelect = document.getElementById('categoryStatus');
+            statusSelect.innerHTML = '<option value="1">Draft</option><option value="2">Pending</option><option value="3">Approved</option><option value="4">Published</option>';
+            statusSelect.value = categoryStatus || '1';
+            
+            // Admin chỉ edit status, Staff edit full
+            if (isAdmin) {
+                document.getElementById('categoryNameContainer').style.display = 'none';
+                document.getElementById('categoryDescriptionContainer').style.display = 'none';
+            } else {
+                document.getElementById('categoryNameContainer').style.display = 'block';
+                document.getElementById('categoryDescriptionContainer').style.display = 'block';
+            }
+            
+            const modalElement = document.getElementById('categoryModal');
+            const modal = bootstrap.Modal.getOrCreateInstance(modalElement);
+            modal.show();
+        }
+
+        function saveCategory() {
+            const id = document.getElementById('categoryId').value;
+            const userRole = window.getUserRole();
+            const isAdmin = userRole === 'Admin';
+            const token = window.getAuthToken();
+            
+            // ✅ FIX: Sử dụng FormData để hỗ trợ multipart/form-data (giống article)
+            const formData = new FormData();
+            
+            if (isAdmin && id) {
+                // Admin chỉ gửi status khi edit
+                formData.append('categoryStatus', document.getElementById('categoryStatus').value);
+                formData.append('isActive', document.getElementById('categoryIsActive').checked);
+            } else {
+                // Staff hoặc Create - gửi đầy đủ
+                formData.append('name', document.getElementById('categoryName').value);
+                formData.append('description', document.getElementById('categoryDescription').value);
+                formData.append('categoryStatus', document.getElementById('categoryStatus').value);
+                formData.append('isActive', document.getElementById('categoryIsActive').checked);
+            }
+
+            const method = id ? 'PUT' : 'POST';
+            const url = id ? `${window.API_BASE_URL}/api/categories/${id}` : `${window.API_BASE_URL}/api/categories`;
+
+            fetch(url, {
+                method: method,
+                headers: {
+                    ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+                    // Don't set Content-Type for FormData - browser sets it automatically
+                },
+                body: formData
+            })
+            .then(response => {
+                if (!response.ok) {
+                    return response.text().then(text => {
+                        throw new Error(text || 'Failed to save category');
+                    });
+                }
+                return response.status === 204 ? null : response.json();
+            })
+            .then(() => {
+                loadCategories();
+                bootstrap.Modal.getInstance(document.getElementById('categoryModal')).hide();
+            })
+            .catch(err => alert(err.message));
+        }
+
+        function deleteCategory(id) {
+            if (!confirm('Delete this category?')) return;
+
+            window.apiFetch(`/api/categories/${id}`, { method: 'DELETE' })
+                .then(response => {
+                    if (!response.ok) throw new Error('Failed to delete category');
+                    loadCategories();
+                })
+                .catch(err => alert(err.message));
+        }
+    </script>
+}

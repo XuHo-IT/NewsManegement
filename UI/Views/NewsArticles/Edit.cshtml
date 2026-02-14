@@ -1,0 +1,188 @@
+@{
+    ViewData["Title"] = "Edit Article";
+    var authToken = Context.Session.GetString("JwtToken");
+    if (string.IsNullOrEmpty(authToken))
+    {
+        Context.Response.Redirect("/Home/Login");
+        return;
+    }
+}
+
+<div class="container py-4 pt-24">
+    <div class="row">
+        <div class="col-md-10 offset-md-1">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">Edit Article</h4>
+                </div>
+                <div class="card-body">
+                    <form id="editForm">
+                        <div class="mb-3">
+                            <label for="newsArticleID" class="form-label">Article ID</label>
+                            <input type="text" class="form-control" id="newsArticleID" name="newsArticleID" readonly>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="newsTitle" class="form-label">Title *</label>
+                            <input type="text" class="form-control" id="newsTitle" name="newsTitle" required>
+                            <div class="form-text">This is the main headline for your article</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="newsHeadline" class="form-label">Headline *</label>
+                            <input type="text" class="form-control" id="newsHeadline" name="newsHeadline" required>
+                            <div class="form-text">A brief summary of the article</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="newsContent" class="form-label">Content *</label>
+                            <textarea class="form-control" id="newsContent" name="newsContent" rows="8" required></textarea>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="categoryID" class="form-label">Category *</label>
+                                    <select class="form-select" id="categoryID" name="categoryID" required>
+                                        <option value="">Select a category...</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="newsSource" class="form-label">Source</label>
+                                    <input type="text" class="form-control" id="newsSource" name="newsSource">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="newsTags" class="form-label">Tags</label>
+                            <select class="form-select" id="newsTags" name="newsTags" multiple>
+                                <option value="">Select tags...</option>
+                            </select>
+                            <div class="form-text">Hold Ctrl/Cmd to select multiple tags</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="newsStatus" class="form-label">Status</label>
+                            <select class="form-select" id="newsStatus" name="newsStatus">
+                                <option value="1">Draft</option>
+                                <option value="2">Pending</option>
+                                <option value="4">Published</option>
+                            </select>
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-check-lg"></i> Save Changes
+                            </button>
+                            <a href="/NewsArticles/Index" class="btn btn-secondary">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const articleId = '@(ViewContext.RouteData.Values["id"] ?? string.Empty)';
+
+    document.addEventListener('DOMContentLoaded', function() {
+        loadCategories();
+        loadTags();
+        loadArticle();
+    });
+
+    function loadArticle() {
+        fetch(`${window.API_BASE_URL}/api/news-articles/${articleId}`)
+            .then(response => response.json())
+            .then(article => {
+                document.getElementById('newsArticleID').value = article.newsArticleID;
+                document.getElementById('newsTitle').value = article.newsTitle;
+                document.getElementById('newsHeadline').value = article.newsHeadline;
+                document.getElementById('newsContent').value = article.newsContent;
+                document.getElementById('categoryID').value = article.categoryID;
+                document.getElementById('newsSource').value = article.newsSource || '';
+                document.getElementById('newsStatus').value = article.newsStatus;
+
+                // Set selected tags
+                if (article.newsTags && Array.isArray(article.newsTags)) {
+                    const tagIds = article.newsTags.map(t => t.tagID);
+                    Array.from(document.getElementById('newsTags').options).forEach(option => {
+                        option.selected = tagIds.includes(parseInt(option.value));
+                    });
+                }
+            })
+            .catch(error => {
+                alert('Error loading article: ' + error.message);
+                window.location.href = '/NewsArticles/Index';
+            });
+    }
+
+    function loadCategories() {
+        fetch(window.API_BASE_URL + '/api/categories')
+            .then(response => response.json())
+            .then(categories => {
+                const select = document.getElementById('categoryID');
+                categories.forEach(cat => {
+                    const option = document.createElement('option');
+                    option.value = cat.categoryID;
+                    option.textContent = cat.categoryName;
+                    select.appendChild(option);
+                });
+            });
+    }
+
+    function loadTags() {
+        fetch(window.API_BASE_URL + '/api/tags')
+            .then(response => response.json())
+            .then(tags => {
+                const select = document.getElementById('newsTags');
+                tags.forEach(tag => {
+                    const option = document.createElement('option');
+                    option.value = tag.tagID;
+                    option.textContent = tag.tagName;
+                    select.appendChild(option);
+                });
+            });
+    }
+
+    document.getElementById('editForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        const selectedTags = Array.from(document.getElementById('newsTags').selectedOptions).map(opt => parseInt(opt.value));
+
+        const articleData = {
+            newsArticleID: document.getElementById('newsArticleID').value,
+            newsTitle: document.getElementById('newsTitle').value,
+            newsHeadline: document.getElementById('newsHeadline').value,
+            newsContent: document.getElementById('newsContent').value,
+            categoryID: parseInt(document.getElementById('categoryID').value),
+            newsSource: document.getElementById('newsSource').value,
+            newsTags: selectedTags,
+            newsStatus: parseInt(document.getElementById('newsStatus').value)
+        };
+
+        fetch(`${window.API_BASE_URL}/api/news-articles/${articleId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer @Context.Session.GetString("JwtToken")`
+            },
+            body: JSON.stringify(articleData)
+        })
+            .then(response => {
+                if (response.ok) {
+                    alert('Article updated successfully!');
+                    window.location.href = '/NewsArticles/Details/' + articleId;
+                } else {
+                    alert('Error updating article');
+                }
+            })
+            .catch(error => {
+                alert('Error: ' + error.message);
+            });
+    });
+</script>

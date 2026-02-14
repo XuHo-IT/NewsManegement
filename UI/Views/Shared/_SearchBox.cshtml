@@ -1,0 +1,18 @@
+@model string
+
+<form method="get" class="mb-3">
+    <div class="input-group">
+        <input type="text" class="form-control" name="searchQuery" placeholder="Search articles..." value="@ViewBag.SearchQuery">
+        <button class="btn btn-outline-secondary" type="submit">Search</button>
+    </div>
+</form>
+
+<style>
+    .search-box {
+        position: relative;
+    }
+    .search-box input {
+        border-radius: 25px;
+        padding: 0.5rem 1rem;
+    }
+</style>

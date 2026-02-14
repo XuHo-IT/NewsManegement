@@ -1,0 +1,170 @@
+@{
+    ViewData["Title"] = "Login";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - FU News Management</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/tailwind-config.css" asp-append-version="true" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            background-color: #FAFAFA;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            position: relative;
+        }
+
+        .login-container {
+            background: #FFFFFF;
+            border: 1px solid #EAEAEA;
+            border-radius: 16px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02), 0 8px 16px -4px rgba(0,0,0,0.04);
+            width: 100%;
+            max-width: 420px;
+            padding: 3rem;
+            position: relative;
+        }
+
+        .login-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .login-header h1 {
+            font-size: 2rem;
+            color: #111111;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            letter-spacing: -0.02em;
+        }
+
+        .login-header p {
+            color: #737373;
+            font-size: 0.95rem;
+            font-weight: 500;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: #111111;
+            margin-bottom: 0.5rem;
+            font-size: 0.875rem;
+            display: block;
+        }
+
+        .form-control {
+            border: 1px solid #E5E5E5;
+            border-radius: 8px;
+            padding: 0.875rem 1rem;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+            width: 100%;
+            background: white;
+        }
+
+        .form-control:focus {
+            border-color: #111111;
+            box-shadow: 0 0 0 3px rgba(17, 17, 17, 0.1);
+            outline: none;
+        }
+
+        .btn-login {
+            background: #111111;
+            border: none;
+            border-radius: 8px;
+            padding: 0.875rem 1.5rem;
+            font-weight: 600;
+            width: 100%;
+            color: white;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.08);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-login:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .btn-login:active {
+            transform: translateY(0);
+        }
+
+        .alert {
+            border-radius: 8px;
+            border: none;
+            margin-bottom: 1.5rem;
+            padding: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-header">
+            <h1>📰 FU News</h1>
+            <p>News Management System</p>
+        </div>
+
+        @if (!string.IsNullOrEmpty(ViewBag.Error))
+        {
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <strong>Error!</strong> @ViewBag.Error
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
+
+        <form method="post">
+            <div class="form-group">
+                <label class="form-label" for="email">Email Address</label>
+                <input type="email" class="form-control" id="email" name="email" placeholder="Enter your email" required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="password">Password</label>
+                <input type="password" class="form-control" id="password" name="password" placeholder="Enter your password" required>
+            </div>
+
+            <button type="submit" class="btn btn-login">Sign In</button>
+        </form>
+
+        <div style="text-align: center; margin-top: 1.5rem;">
+            <p style="color: #737373; font-size: 0.875rem;">
+                Don't have an account? 
+                <a href="@Url.Action("Register", "Home")" style="color: #111111; font-weight: 600; text-decoration: none;">Sign up</a>
+            </p>
+        </div>
+
+        <div style="text-align: center; margin: 1.5rem 0; position: relative;">
+            <span style="background: white; padding: 0 1rem; color: #737373; font-size: 0.875rem; position: relative; z-index: 1;">OR</span>
+            <hr style="position: absolute; top: 50%; left: 0; right: 0; margin: 0; border-top: 1px solid #E5E5E5; z-index: 0;">
+        </div>
+
+        <a href="@Url.Action("GoogleLogin")" class="btn btn-google" style="display: flex; align-items: center; justify-content: center; gap: 0.75rem; background: white; border: 1px solid #E5E5E5; border-radius: 8px; padding: 0.875rem 1.5rem; font-weight: 600; width: 100%; color: #111111; font-size: 0.95rem; transition: all 0.3s ease; text-decoration: none; box-shadow: 0 1px 2px rgba(0,0,0,0.04);">
+            <svg width="18" height="18" viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg">
+                <path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z" fill="#4285F4"/>
+                <path d="M9.003 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.258c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.96v2.332C2.44 15.983 5.485 18 9.003 18z" fill="#34A853"/>
+                <path d="M3.964 10.71c-.18-.54-.282-1.117-.282-1.71s.102-1.17.282-1.71V4.958H.957C.347 6.173 0 7.548 0 9.001c0 1.452.348 2.827.957 4.041l3.007-2.332z" fill="#FBBC05"/>
+                <path d="M9.003 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.464.891 11.428 0 9.002 0 5.485 0 2.44 2.017.96 4.958L3.967 7.29c.708-2.127 2.692-3.71 5.036-3.71z" fill="#EA4335"/>
+            </svg>
+            <span>Continue with Google</span>
+        </a>
+    </div>
+
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

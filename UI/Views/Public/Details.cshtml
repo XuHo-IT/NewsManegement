@@ -1,0 +1,35 @@
+@{
+    ViewData["Title"] = "Article";
+    var articleId = ViewData["ArticleId"]?.ToString() ?? string.Empty;
+}
+
+<div class="row pt-24">
+    <div class="col-lg-8 mx-auto">
+        <div class="card">
+            <div class="card-body" id="articleContainer">
+                <p class="text-muted text-center">Loading...</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const id = '@articleId';
+            fetch(`${window.API_BASE_URL}/api/news-articles/${id}`)
+                .then(response => response.json())
+                .then(article => {
+                    document.getElementById('articleContainer').innerHTML = `
+                        <h1>${article.newsTitle || 'Untitled'}</h1>
+                        <p class="text-muted">${new Date(article.createdDate).toLocaleDateString()} • ${article.category?.categoryName || 'General'}</p>
+                        <hr />
+                        <p>${article.newsContent || ''}</p>
+                    `;
+                })
+                .catch(() => {
+                    document.getElementById('articleContainer').innerHTML = '<p class="text-danger text-center">Failed to load article</p>';
+                });
+        });
+    </script>
+}

@@ -1,0 +1,89 @@
+@{
+    ViewData["Title"] = "Public News";
+}
+
+<div class="max-w-7xl mx-auto px-6 md:px-12 lg:px-20 pt-24">
+    <!-- Header -->
+    <div class="mb-8">
+        <h1 class="font-sans text-4xl font-semibold text-obsidian tracking-tight">Latest News</h1>
+        <p class="text-subtle text-base mt-2">Browse published articles</p>
+    </div>
+
+    <!-- Search -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+        <input type="text" id="searchInput" class="col-span-1 md:col-span-3 px-4 py-3 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-obsidian/20 bg-white" placeholder="Search news...">
+        <button class="group relative isolate overflow-hidden bg-obsidian text-white text-sm font-semibold px-6 py-3 rounded shadow-[0_1px_2px_rgba(0,0,0,0.08)] ring-1 ring-white/10 transition-all duration-500 ease-[cubic-bezier(0.25,1,0.5,1)] hover:scale-[1.02] hover:shadow-[0_8px_24px_-4px_rgba(0,0,0,0.25)] hover:ring-white/20 active:scale-[0.98]" onclick="searchPublic()">
+            <span class="relative z-10">Search</span>
+        </button>
+    </div>
+
+    <!-- Articles Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="publicArticles">
+        <div class="col-span-full text-center text-subtle py-12">Loading...</div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            loadPublicArticles();
+        });
+
+        function loadPublicArticles() {
+            fetch(window.API_BASE_URL + '/api/news-articles/public?$orderby=CreatedDate desc')
+                .then(response => response.json())
+                .then(data => renderPublicArticles(data))
+                .catch(() => {
+                    document.getElementById('publicArticles').innerHTML = '<div class="col-span-full text-center text-red-600 py-12">Error loading articles</div>';
+                });
+        }
+
+        function searchPublic() {
+            const q = document.getElementById('searchInput').value.trim();
+            const url = q
+                ? `/api/news-articles/search?q=${encodeURIComponent(q)}&status=Published`
+                : '/api/news-articles/public?$orderby=CreatedDate desc';
+
+            fetch(window.API_BASE_URL + url)
+                .then(response => response.json())
+                .then(data => renderPublicArticles(data))
+                .catch(() => {
+                    document.getElementById('publicArticles').innerHTML = '<div class="col-span-full text-center text-red-600 py-12">Error loading articles</div>';
+                });
+        }
+
+        function renderPublicArticles(data) {
+            const container = document.getElementById('publicArticles');
+            container.innerHTML = '';
+
+            if (!Array.isArray(data) || data.length === 0) {
+                container.innerHTML = '<div class="col-span-full text-center text-subtle py-12">No articles found</div>';
+                return;
+            }
+
+            data.forEach(article => {
+                const date = new Date(article.createdDate).toLocaleDateString();
+                const headline = (article.headline || article.newsContent || '').substring(0, 120);
+                
+                container.innerHTML += `
+                    <div class="premium-card rounded-xl overflow-hidden hover:shadow-lg transition-all duration-300">
+                        <div class="p-6">
+                            <h3 class="text-xl font-semibold text-obsidian mb-3 line-clamp-2">${article.newsTitle || 'Untitled'}</h3>
+                            <p class="text-subtle text-sm mb-4 line-clamp-3">${headline}${headline.length >= 120 ? '...' : ''}</p>
+                            <div class="flex justify-between items-center">
+                                <span class="text-xs text-subtle">${date}</span>
+                                <a href="/Public/Details/${article.newsArticleID}" class="text-blue-600 hover:text-blue-800 font-medium text-sm flex items-center gap-1">
+                                    Read more
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="m12 5 7 7-7 7"></path>
+                                        <path d="M5 12h14"></path>
+                                    </svg>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+    </script>
+}

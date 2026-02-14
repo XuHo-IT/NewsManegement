@@ -1,0 +1,392 @@
+﻿@inject IConfiguration Configuration
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - FU News Management</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/tailwind-config.css" asp-append-version="true" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/iconify-icon@2.1.0/dist/iconify-icon.min.js"></script>
+    <!-- TinyMCE Rich Text Editor -->
+    @{
+        var tinyMceApiKey = Configuration["TinyMCE:ApiKey"] ?? "cbco3op6631aqlq9ezt9tnymspw386pav8hbkf9xswyhuu7q";
+    }
+    <script src="https://cdn.tiny.cloud/1/@tinyMceApiKey/tinymce/8/tinymce.min.js" referrerpolicy="origin" crossorigin="anonymous"></script>
+    <script>
+        // Global API Base URL
+        window.API_BASE_URL = 'http://localhost:5099';
+        
+        // Global API fetch helper with JWT token
+        window.apiFetch = function(endpoint, options = {}) {
+            const token = '@Context.Session.GetString("JwtToken")';
+            const isFormData = options.body instanceof FormData;
+            
+            const defaultOptions = {
+                headers: {
+                    // Only set Content-Type for JSON, not for FormData (browser sets it automatically)
+                    ...(isFormData ? {} : { 'Content-Type': 'application/json' }),
+                    ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+                }
+            };
+            
+            const mergedOptions = {
+                ...defaultOptions,
+                ...options,
+                headers: {
+                    ...defaultOptions.headers,
+                    // Don't override Content-Type if it's FormData
+                    ...(isFormData ? {} : (options.headers || {}))
+                }
+            };
+            
+            return fetch(window.API_BASE_URL + endpoint, mergedOptions);
+        };
+        
+        // Helper to get auth token
+        window.getAuthToken = function() {
+            return '@Context.Session.GetString("JwtToken")';
+        };
+        
+        // Helper to get user role
+        window.getUserRole = function() {
+            return '@Context.Session.GetString("UserRole")' || 'User';
+        };
+        
+        // Helper to get current user account ID
+        window.getCurrentAccountID = function() {
+            return '@Context.Session.GetString("AccountID")' || null;
+        };
+    </script>
+    <style>
+        /* COMPLETE MODAL FIX - Remove backdrop completely and fix z-index */
+        .modal-backdrop {
+            display: none !important; /* Completely remove backdrop */
+            opacity: 0 !important;
+            visibility: hidden !important;
+        }
+        .modal {
+            z-index: 10000 !important; /* Above header (z-50 = 50) */
+            display: none !important;
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            bottom: 0 !important;
+        }
+        .modal.show {
+            z-index: 10000 !important; /* Above everything */
+            display: flex !important; /* Use flex to center */
+            align-items: flex-start !important;
+            justify-content: center !important;
+            padding-top: 100px !important; /* Space below header */
+        }
+        .modal-dialog {
+            z-index: 10001 !important;
+            position: relative;
+            margin: 0 !important;
+            max-width: 90% !important;
+        }
+        .modal-content {
+            z-index: 10002 !important;
+            position: relative;
+        }
+        body.modal-open {
+            overflow: hidden !important;
+            padding-right: 0 !important;
+        }
+        /* Ensure all modal elements are clickable */
+        .modal.show,
+        .modal.show * {
+            pointer-events: auto !important;
+        }
+        /* Ensure modal is above header */
+        header.navbar,
+        header {
+            z-index: 50 !important; /* Lower than modal */
+            position: relative !important;
+        }
+        
+        :root {
+            --primary-color: #111111;
+            --secondary-color: #3498db;
+            --danger-color: #e74c3c;
+            --success-color: #27ae60;
+            --warning-color: #f39c12;
+        }
+        html {
+            scroll-behavior: smooth;
+        }
+        body {
+            background-color: #FAFAFA;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            color: #111111;
+            -webkit-font-smoothing: antialiased;
+            overflow-x: hidden;
+        }
+        .premium-card {
+            background: #FFFFFF;
+            border: 1px solid #EAEAEA;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02), 0 8px 16px -4px rgba(0,0,0,0.04);
+            transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+        .premium-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.03), 0 12px 24px -6px rgba(0,0,0,0.06);
+            border-color: #D4D4D4;
+        }
+        .shimmer-layer {
+            transform: translateX(-100%);
+        }
+        .group:hover .shimmer-layer {
+            animation: shimmer 1.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+        }
+        @@keyframes shimmer {
+            100% { transform: translateX(100%); }
+        }
+        .navbar {
+            background: rgba(250, 250, 250, 0.9);
+            backdrop-filter: blur(16px);
+            border-bottom: 1px solid rgba(229, 229, 229, 0.5);
+            box-shadow: none !important;
+        }
+        .navbar-brand {
+            font-weight: 700;
+            font-size: 1.2rem;
+            color: #111111 !important;
+            letter-spacing: -0.02em;
+        }
+        .navbar a {
+            color: #737373 !important;
+            transition: color 0.3s ease;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+        .navbar a:hover {
+            color: #111111 !important;
+        }
+        .main-container {
+            min-height: calc(100vh - 120px);
+            padding: 2rem 0;
+        }
+        footer {
+            background-color: #FFFFFF;
+            color: #111111;
+            margin-top: 3rem;
+            padding: 3rem 0;
+            border-top: 1px solid #E5E5E5;
+        }
+        footer a {
+            color: #111111;
+            transition: opacity 0.3s ease;
+        }
+        footer a:hover {
+            opacity: 0.7;
+        }
+    </style>
+</head>
+<body>
+    <!-- Fixed Backgrounds -->
+    <div class="fixed inset-0 z-0 pointer-events-none" style="background-size: 40px 40px; background-image: linear-gradient(to right, rgba(0, 0, 0, 0.04) 1px, transparent 1px), linear-gradient(to bottom, rgba(0, 0, 0, 0.04) 1px, transparent 1px);"></div>
+
+    <!-- Navigation -->
+    <header class="fixed top-0 left-0 right-0 z-50 w-full px-6 py-5 md:px-12 flex justify-between items-center navbar transition-all duration-300">
+        <div class="flex items-center gap-3">
+            <div class="w-5 h-5 bg-obsidian text-white flex items-center justify-center rounded-sm">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="w-3 h-3">
+                    <circle cx="12" cy="12" r="1" fill="currentColor"></circle>
+                </svg>
+            </div>
+            <a asp-area="" asp-controller="Home" asp-action="Index" class="font-sans text-sm font-bold tracking-tight text-obsidian">
+                NEWS
+            </a>
+        </div>
+
+        <nav class="hidden md:flex items-center gap-8">
+            @if (!string.IsNullOrEmpty(Context.Session.GetString("JwtToken")))
+            {
+                var userRole = Context.Session.GetString("UserRole");
+                
+                @if (userRole != "Guest")
+                {
+                    <a asp-area="" asp-controller="NewsArticles" asp-action="Index" class="font-sans text-xs font-medium text-subtle hover:text-obsidian transition-colors">
+                        Articles
+                    </a>
+                    <a asp-area="" asp-controller="Categories" asp-action="Index" class="font-sans text-xs font-medium text-subtle hover:text-obsidian transition-colors">
+                        Categories
+                    </a>
+                    <a asp-area="" asp-controller="Tags" asp-action="Index" class="font-sans text-xs font-medium text-subtle hover:text-obsidian transition-colors">
+                        Tags
+                    </a>
+                }
+                else
+                {
+                    <a asp-area="" asp-controller="Public" asp-action="Index" class="font-sans text-xs font-medium text-subtle hover:text-obsidian transition-colors">
+                        Published News
+                    </a>
+                }
+                
+                @* ✅ FIX: Bỏ AI Assistant link cho Staff vì đã tích hợp vào create article *@
+                @if (userRole == "Admin")
+                {
+                    <a asp-area="" asp-controller="Reports" asp-action="Index" class="font-sans text-xs font-medium text-subtle hover:text-obsidian transition-colors">
+                        Reports
+                    </a>
+                    <a asp-area="" asp-controller="SystemAccounts" asp-action="Index" class="font-sans text-xs font-medium text-subtle hover:text-obsidian transition-colors">
+                        Accounts
+                    </a>
+                    <a asp-area="" asp-controller="AuditLogs" asp-action="Index" class="font-sans text-xs font-medium text-subtle hover:text-obsidian transition-colors">
+                        Logs
+                    </a>
+                }
+            }
+            else
+            {
+                <a asp-area="" asp-controller="Public" asp-action="Index" class="font-sans text-xs font-medium text-subtle hover:text-obsidian transition-colors">
+                    Public News
+                </a>
+            }
+        </nav>
+
+        <div class="flex items-center gap-5">
+            @if (!string.IsNullOrEmpty(Context.Session.GetString("JwtToken")))
+            {
+                var userRole = Context.Session.GetString("UserRole") ?? "User";
+                var roleColor = userRole == "Admin" ? "bg-red-100 text-red-800" : userRole == "Staff" ? "bg-blue-100 text-blue-800" : userRole == "Guest" ? "bg-gray-100 text-gray-800" : "bg-green-100 text-green-800";
+                
+                <div class="hidden md:flex items-center gap-3">
+                    <span class="px-3 py-1 rounded-full text-[10px] font-bold @roleColor">@userRole</span>
+                    <span class="font-sans text-xs font-medium text-subtle">@Context.Session.GetString("UserEmail")</span>
+                </div>
+                <a asp-area="" asp-controller="Home" asp-action="Logout" class="group relative isolate overflow-hidden bg-obsidian text-white text-xs font-semibold px-6 py-2.5 rounded shadow-[0_1px_2px_rgba(0,0,0,0.08)] ring-1 ring-white/10 transition-all duration-500 ease-[cubic-bezier(0.25,1,0.5,1)] hover:scale-[1.04] hover:shadow-[0_8px_24px_-4px_rgba(0,0,0,0.25)] hover:ring-white/20 active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-obsidian/20 focus:ring-offset-1">
+                    <span class="relative z-20">Logout</span>
+                </a>
+            }
+            else
+            {
+                <a asp-area="" asp-controller="Home" asp-action="Login" class="group relative isolate overflow-hidden bg-obsidian text-white text-xs font-semibold px-6 py-2.5 rounded shadow-[0_1px_2px_rgba(0,0,0,0.08)] ring-1 ring-white/10 transition-all duration-500 ease-[cubic-bezier(0.25,1,0.5,1)] hover:scale-[1.04] hover:shadow-[0_8px_24px_-4px_rgba(0,0,0,0.25)] hover:ring-white/20 active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-obsidian/20 focus:ring-offset-1">
+                    <div class="shimmer-layer absolute inset-0 bg-gradient-to-r from-transparent via-white/25 to-transparent z-10"></div>
+                    <span class="relative z-20">Sign in</span>
+                </a>
+            }
+        </div>
+    </header>
+
+    <!-- Content Wrapper -->
+    <div class="z-10 flex flex-col w-full relative pt-20">
+        <main class="main-container">
+            @RenderBody()
+        </main>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-white py-20 px-6 md:px-12 lg:px-20">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between gap-12">
+            <div class="max-w-xs space-y-6">
+                <div class="flex items-center gap-2">
+                    <div class="w-4 h-4 bg-obsidian rounded-sm"></div>
+                    <span class="font-bold text-sm tracking-tight text-obsidian">
+                        FU NEWS
+                    </span>
+                </div>
+                <p class="text-xs text-subtle leading-relaxed">
+                    A comprehensive news management platform for FPT University.
+                </p>
+                <div class="text-[10px] text-border">
+                    © 2026 FU News Management System. All rights reserved.
+                </div>
+            </div>
+
+            <div class="flex gap-16">
+                <div class="space-y-4">
+                    <h4 class="text-xs font-bold text-obsidian">Platform</h4>
+                    <ul class="space-y-2 text-xs text-subtle">
+                        <li><a href="#" class="hover:text-obsidian transition-colors">Features</a></li>
+                        <li><a href="#" class="hover:text-obsidian transition-colors">API Docs</a></li>
+                        <li><a href="#" class="hover:text-obsidian transition-colors">Status</a></li>
+                    </ul>
+                </div>
+                <div class="space-y-4">
+                    <h4 class="text-xs font-bold text-obsidian">Company</h4>
+                    <ul class="space-y-2 text-xs text-subtle">
+                        <li><a href="#" class="hover:text-obsidian transition-colors">About</a></li>
+                        <li><a href="#" class="hover:text-obsidian transition-colors">Contact</a></li>
+                        <li><a href="#" class="hover:text-obsidian transition-colors">Support</a></li>
+                    </ul>
+                </div>
+                <div class="space-y-4">
+                    <h4 class="text-xs font-bold text-obsidian">Legal</h4>
+                    <ul class="space-y-2 text-xs text-subtle">
+                        <li><a href="#" class="hover:text-obsidian transition-colors">Privacy</a></li>
+                        <li><a href="#" class="hover:text-obsidian transition-colors">Terms</a></li>
+                        <li><a href="#" class="hover:text-obsidian transition-colors">Security</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    
+    <script>
+        // Fix modal backdrop z-index issue - COMPLETE SOLUTION
+        (function() {
+            // Wait for Bootstrap to be available
+            function initModalFix() {
+                if (typeof bootstrap === 'undefined' || !bootstrap.Modal) {
+                    setTimeout(initModalFix, 50);
+                    return;
+                }
+                
+                // Override Bootstrap modal show to REMOVE backdrop completely
+                const originalShow = bootstrap.Modal.prototype.show;
+                bootstrap.Modal.prototype.show = function() {
+                    const result = originalShow.call(this);
+                    // Immediately remove backdrop completely
+                    setTimeout(() => {
+                        const backdrop = document.querySelector('.modal-backdrop');
+                        if (backdrop) {
+                            backdrop.style.display = 'none'; // Remove completely
+                            backdrop.style.opacity = '0';
+                            backdrop.style.visibility = 'hidden';
+                        }
+                        const modalElement = this._element;
+                        if (modalElement) {
+                            modalElement.style.zIndex = '9999'; // Above header
+                            modalElement.style.pointerEvents = 'auto';
+                        }
+                    }, 10);
+                    return result;
+                };
+                
+                // Watch for backdrop and immediately remove it
+                const observer = new MutationObserver(function(mutations) {
+                    mutations.forEach(function(mutation) {
+                        mutation.addedNodes.forEach(function(node) {
+                            if (node.nodeType === 1 && node.classList && node.classList.contains('modal-backdrop')) {
+                                node.style.display = 'none'; // Remove completely
+                                node.style.opacity = '0';
+                                node.style.visibility = 'hidden';
+                            }
+                        });
+                    });
+                });
+                observer.observe(document.body, { childList: true, subtree: true });
+            }
+            
+            // Initialize when DOM is ready
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', initModalFix);
+            } else {
+                initModalFix();
+            }
+        })();
+    </script>
+    
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

@@ -1,0 +1,434 @@
+﻿@{
+    ViewData["Title"] = "Dashboard";
+    var isLoggedIn = !string.IsNullOrEmpty(Context.Session.GetString("JwtToken"));
+}
+
+@if (!isLoggedIn)
+{
+    <!-- HERO SECTION - NOT LOGGED IN WITH 3D ANIMATIONS -->
+    <section class="relative min-h-screen flex flex-col items-center justify-center px-6 md:px-12 lg:px-20 pt-32 pb-20 overflow-hidden">
+        <!-- Animated Background Particles -->
+        <div class="absolute inset-0 overflow-hidden pointer-events-none">
+            <div class="particle" style="--delay: 0s; --duration: 20s; --x: 10%;"></div>
+            <div class="particle" style="--delay: 2s; --duration: 25s; --x: 30%;"></div>
+            <div class="particle" style="--delay: 4s; --duration: 30s; --x: 50%;"></div>
+            <div class="particle" style="--delay: 6s; --duration: 22s; --x: 70%;"></div>
+            <div class="particle" style="--delay: 8s; --duration: 28s; --x: 90%;"></div>
+        </div>
+
+        <!-- Floating 3D Cards -->
+        <div class="absolute top-20 right-10 w-64 h-64 floating-card-1">
+            <div class="premium-card p-6 rounded-2xl transform-gpu" style="transform: perspective(1000px) rotateY(15deg) rotateX(-10deg);">
+                <div class="text-4xl mb-2">📰</div>
+                <p class="text-sm font-semibold text-obsidian">News Articles</p>
+                <p class="text-xs text-subtle">Manage content</p>
+            </div>
+        </div>
+
+        <div class="absolute top-40 left-10 w-56 h-56 floating-card-2">
+            <div class="premium-card p-6 rounded-2xl transform-gpu" style="transform: perspective(1000px) rotateY(-15deg) rotateX(10deg);">
+                <div class="text-4xl mb-2">📊</div>
+                <p class="text-sm font-semibold text-obsidian">Analytics</p>
+                <p class="text-xs text-subtle">Track performance</p>
+            </div>
+        </div>
+
+        <div class="absolute bottom-20 right-20 w-52 h-52 floating-card-3">
+            <div class="premium-card p-6 rounded-2xl transform-gpu" style="transform: perspective(1000px) rotateY(10deg) rotateX(5deg);">
+                <div class="text-4xl mb-2">🏷️</div>
+                <p class="text-sm font-semibold text-obsidian">Categories</p>
+                <p class="text-xs text-subtle">Organize content</p>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="relative z-10 max-w-4xl mx-auto text-center space-y-8">
+            <div class="space-y-6 animate-fade-in">
+                <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/80 backdrop-blur-sm border border-border/60 shadow-lg animate-bounce-subtle">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                    <span class="font-sans text-xs font-medium text-subtle tracking-tight">
+                        Welcome to FU News Management
+                    </span>
+                </div>
+                
+                <h1 class="font-sans text-7xl md:text-8xl lg:text-9xl font-bold tracking-tighter text-obsidian leading-[0.9] animate-slide-up">
+                    News
+                    <br>
+                    <span class="text-subtle bg-gradient-to-r from-obsidian via-subtle to-obsidian bg-clip-text text-transparent animate-gradient">
+                        Management.
+                    </span>
+                </h1>
+                
+                <p class="max-w-2xl mx-auto font-sans text-lg md:text-xl text-subtle leading-relaxed animate-fade-in-delay">
+                    Create, manage, and publish news articles effortlessly. Build your content strategy with powerful tools designed for modern teams.
+                </p>
+            </div>
+
+            <!-- CTA Buttons -->
+            <div class="flex flex-wrap items-center justify-center gap-4 animate-fade-in-delay-2">
+                <a href="@Url.Action("Login")" class="group relative isolate overflow-hidden bg-obsidian hover:bg-gray-800 text-white text-base font-semibold px-10 py-4 rounded-xl shadow-lg transition-all duration-300 hover:shadow-xl active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-obsidian/20 focus:ring-offset-2 flex items-center gap-3">
+                    <span class="relative z-10">Get Started</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="relative z-10 transition-transform duration-300 group-hover:translate-x-1">
+                        <path d="M5 12h14"></path>
+                        <path d="m12 5 7 7-7 7"></path>
+                    </svg>
+                </a>
+                
+                <a href="@Url.Action("Index", "Public")" class="px-10 py-4 bg-obsidian text-white border-2 border-obsidian text-base font-semibold rounded-xl shadow-lg transition-all duration-300 ease-out hover:bg-gray-800 hover:border-gray-800 hover:shadow-xl active:scale-[0.97] focus:outline-none focus:ring-2 focus:ring-obsidian/20 focus:ring-offset-2 transform-gpu hover:-rotate-1">
+                    View Public News
+                </a>
+            </div>
+
+            <!-- Feature Highlights -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-20 animate-fade-in-delay-3">
+                <div class="premium-card p-6 rounded-xl hover:scale-105 transition-all duration-300 transform-gpu hover:rotate-1">
+                    <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center mb-4 shadow-lg">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-lg font-semibold text-obsidian mb-2">Create & Edit</h3>
+                    <p class="text-sm text-subtle leading-relaxed">Rich text editor with multimedia support</p>
+                </div>
+
+                <div class="premium-card p-6 rounded-xl hover:scale-105 transition-all duration-300 transform-gpu hover:rotate-1">
+                    <div class="w-12 h-12 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl flex items-center justify-center mb-4 shadow-lg">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="11" cy="11" r="8"></circle>
+                            <path d="m21 21-4.35-4.35"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-lg font-semibold text-obsidian mb-2">Organize</h3>
+                    <p class="text-sm text-subtle leading-relaxed">Categories and tags for better management</p>
+                </div>
+
+                <div class="premium-card p-6 rounded-xl hover:scale-105 transition-all duration-300 transform-gpu hover:rotate-1">
+                    <div class="w-12 h-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center mb-4 shadow-lg">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-lg font-semibold text-obsidian mb-2">Collaborate</h3>
+                    <p class="text-sm text-subtle leading-relaxed">Team workflow and approval system</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <style>
+        /* Particle Animation */
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: linear-gradient(135deg, rgba(17, 17, 17, 0.1), rgba(115, 115, 115, 0.2));
+            border-radius: 50%;
+            animation: float var(--duration) ease-in-out infinite;
+            animation-delay: var(--delay);
+            left: var(--x);
+            top: -10px;
+            box-shadow: 0 0 10px rgba(17, 17, 17, 0.1);
+        }
+
+        @@keyframes float {
+            0% {
+                transform: translateY(0) translateX(0) scale(1);
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            90% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(100vh) translateX(50px) scale(0.5);
+                opacity: 0;
+            }
+        }
+
+        /* Floating Cards */
+        .floating-card-1 {
+            animation: float-card-1 6s ease-in-out infinite;
+        }
+
+        .floating-card-2 {
+            animation: float-card-2 8s ease-in-out infinite;
+        }
+
+        .floating-card-3 {
+            animation: float-card-3 7s ease-in-out infinite;
+        }
+
+        @@keyframes float-card-1 {
+            0%, 100% {
+                transform: translateY(0) rotate(0deg);
+            }
+            50% {
+                transform: translateY(-20px) rotate(5deg);
+            }
+        }
+
+        @@keyframes float-card-2 {
+            0%, 100% {
+                transform: translateY(0) rotate(0deg);
+            }
+            50% {
+                transform: translateY(-30px) rotate(-5deg);
+            }
+        }
+
+        @@keyframes float-card-3 {
+            0%, 100% {
+                transform: translateY(0) rotate(0deg);
+            }
+            50% {
+                transform: translateY(-25px) rotate(3deg);
+            }
+        }
+
+        /* Fade In Animations */
+        @@keyframes fade-in {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate-fade-in {
+            animation: fade-in 0.8s ease-out;
+        }
+
+        .animate-fade-in-delay {
+            animation: fade-in 0.8s ease-out 0.2s both;
+        }
+
+        .animate-fade-in-delay-2 {
+            animation: fade-in 0.8s ease-out 0.4s both;
+        }
+
+        .animate-fade-in-delay-3 {
+            animation: fade-in 0.8s ease-out 0.6s both;
+        }
+
+        /* Slide Up */
+        @@keyframes slide-up {
+            from {
+                opacity: 0;
+                transform: translateY(40px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate-slide-up {
+            animation: slide-up 1s ease-out;
+        }
+
+        /* Bounce Subtle */
+        @@keyframes bounce-subtle {
+            0%, 100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(-5px);
+            }
+        }
+
+        .animate-bounce-subtle {
+            animation: bounce-subtle 2s ease-in-out infinite;
+        }
+
+        /* Gradient Animation */
+        @@keyframes gradient {
+            0%, 100% {
+                background-position: 0% 50%;
+            }
+            50% {
+                background-position: 100% 50%;
+            }
+        }
+
+        .animate-gradient {
+            background-size: 200% 200%;
+            animation: gradient 3s ease infinite;
+        }
+
+        /* 3D Transform */
+        .transform-gpu {
+            transform: translateZ(0);
+            will-change: transform;
+        }
+
+        @@media (max-width: 768px) {
+            .floating-card-1,
+            .floating-card-2,
+            .floating-card-3 {
+                display: none;
+            }
+        }
+    </style>
+}
+else
+{
+    var userRole = Context.Session.GetString("UserRole") ?? "Lecturer";
+    <!-- HERO SECTION - LOGGED IN -->
+    <section class="relative min-h-[90vh] flex flex-col lg:flex-row items-center justify-between px-6 md:px-12 lg:px-20 pt-32 pb-20 gap-16">
+    <div class="max-w-2xl space-y-10 relative z-10">
+        <div class="space-y-6">
+            <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded bg-white border border-border/60 shadow-sm">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                <span class="font-sans text-[11px] font-medium text-subtle tracking-tight">
+                    Welcome to FU News Management
+                </span>
+            </div>
+            <h1 class="font-sans text-6xl md:text-7xl lg:text-7xl font-semibold tracking-tighter text-obsidian leading-[0.95]">
+                News
+                <br>
+                <span class="text-subtle">Management.</span>
+            </h1>
+            <p class="max-w-md font-sans text-base text-subtle leading-relaxed">
+                Create, manage, and publish news articles effortlessly. Build your content strategy with powerful tools.
+            </p>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-4">
+            @if (userRole != "Guest")
+            {
+                <a href="@Url.Action("Create", "NewsArticles")" class="group relative isolate overflow-hidden bg-obsidian hover:bg-gray-800 text-white text-sm font-semibold px-8 py-3.5 rounded shadow-md transition-all duration-300 hover:shadow-lg active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-obsidian/20 focus:ring-offset-2 flex items-center gap-2">
+                    <span class="relative z-10">Create Article</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="relative z-10 transition-transform duration-300 group-hover:translate-x-1">
+                        <path d="M5 12h14"></path>
+                        <path d="m12 5 7 7-7 7"></path>
+                    </svg>
+                </a>
+            }
+            <a href="@Url.Action("Index", "NewsArticles")" class="px-8 py-3.5 bg-obsidian text-white border border-obsidian text-sm font-medium rounded shadow-sm transition-all duration-300 ease-out hover:bg-gray-800 hover:border-gray-800 hover:shadow-md active:scale-[0.97] focus:outline-none focus:ring-2 focus:ring-obsidian/20 focus:ring-offset-2">
+                View All Articles
+            </a>
+            
+            @if (userRole == "Admin")
+            {
+                <a href="@Url.Action("Index", "SystemAccounts")" class="px-8 py-3.5 bg-obsidian hover:bg-gray-800 text-white border border-obsidian text-sm font-medium rounded shadow-sm transition-all duration-300 ease-out hover:shadow-md active:scale-[0.97]">
+                    Manage Accounts
+                </a>
+                <a href="@Url.Action("Index", "AuditLogs")" class="px-8 py-3.5 bg-obsidian hover:bg-gray-800 text-white border border-obsidian text-sm font-medium rounded shadow-sm transition-all duration-300 ease-out hover:shadow-md active:scale-[0.97]">
+                    View Audit Logs
+                </a>
+            }
+            else if (userRole == "Staff")
+            {
+                <a href="@Url.Action("Index", "Reports")" class="px-8 py-3.5 bg-obsidian hover:bg-gray-800 text-white border border-obsidian text-sm font-medium rounded shadow-sm transition-all duration-300 ease-out hover:shadow-md active:scale-[0.97]">
+                    View Reports
+                </a>
+            }
+        </div>
+    </div>
+
+    <!-- Illustration Placeholder -->
+    <div class="relative w-full max-w-lg aspect-square lg:aspect-[4/3] flex items-center justify-center">
+        <div class="absolute inset-0 bg-gradient-to-tr from-canvas via-white to-canvas opacity-50 blur-3xl"></div>
+        <div class="premium-card w-full h-full p-6 relative overflow-hidden rounded-xl flex items-center justify-center">
+            <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-obsidian to-transparent"></div>
+            <div class="text-center space-y-4">
+                <div class="text-6xl">📰</div>
+                <p class="text-sm text-subtle font-medium">News Management System</p>
+                <p class="text-xs text-subtle/70">Create and manage articles with ease</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- FEATURES SECTION -->
+<section class="py-32 px-6 md:px-12 lg:px-20 border-b border-border/60">
+    <div class="max-w-7xl mx-auto">
+        <div class="flex flex-col md:flex-row justify-between items-end mb-20 gap-8">
+            <div class="max-w-xl">
+                <h2 class="font-sans text-4xl md:text-5xl font-semibold text-obsidian tracking-tight mb-6 leading-[1.1]">
+                    Powerful features.
+                    <span class="text-subtle block">Made simple.</span>
+                </h2>
+                <p class="text-subtle text-lg leading-relaxed">
+                    Everything you need to manage your news content effectively and efficiently.
+                </p>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <!-- Feature 1 -->
+            <div class="group relative bg-white border border-border rounded-xl overflow-hidden hover:border-obsidian/30 transition-all duration-500 p-8 flex flex-col">
+                <div class="w-10 h-10 bg-canvas border border-border rounded flex items-center justify-center mb-6 text-obsidian shadow-sm">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                    </svg>
+                </div>
+                <h3 class="text-2xl font-semibold text-obsidian mb-3">Create & Edit</h3>
+                <p class="text-subtle leading-relaxed">
+                    Write and edit articles with a rich text editor. Support for multimedia content and formatting.
+                </p>
+            </div>
+
+            <!-- Feature 2 -->
+            <div class="group relative bg-white border border-border rounded-xl overflow-hidden hover:border-obsidian/30 transition-all duration-500 p-8 flex flex-col">
+                <div class="w-10 h-10 bg-canvas border border-border rounded flex items-center justify-center mb-6 text-obsidian shadow-sm">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <path d="m21 21-4.35-4.35"></path>
+                    </svg>
+                </div>
+                <h3 class="text-2xl font-semibold text-obsidian mb-3">Organize</h3>
+                <p class="text-subtle leading-relaxed">
+                    Categorize and tag your articles. Easy search and filtering for better content management.
+                </p>
+            </div>
+
+            <!-- Feature 3 -->
+            <div class="group relative bg-white border border-border rounded-xl overflow-hidden hover:border-obsidian/30 transition-all duration-500 p-8 flex flex-col">
+                <div class="w-10 h-10 bg-canvas border border-border rounded flex items-center justify-center mb-6 text-obsidian shadow-sm">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
+                    </svg>
+                </div>
+                <h3 class="text-2xl font-semibold text-obsidian mb-3">Collaborate</h3>
+                <p class="text-subtle leading-relaxed">
+                    Work with your team. Assign articles, track status, and manage approvals effortlessly.
+                </p>
+            </div>
+        </div>
+    </div>
+</section>
+
+    <!-- DASHBOARD STATS - Only show for Admin -->
+    @if (userRole == "Admin")
+    {
+        <section class="py-24 px-6 md:px-12 lg:px-20 bg-canvas">
+            <div class="max-w-7xl mx-auto">
+                <div class="text-center mb-16">
+                    <h2 class="font-sans text-3xl font-semibold text-obsidian tracking-tight mb-4">
+                        Dashboard Overview
+                    </h2>
+                    <p class="font-sans text-subtle text-base">
+                        Quick insights into your content management system.
+                    </p>
+                </div>
+
+                <div class="mb-12">
+                    @await Html.PartialAsync("_StatisticsCards")
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    @await Html.PartialAsync("_RecentArticles")
+                    @await Html.PartialAsync("_UserInfo")
+                </div>
+            </div>
+        </section>
+    }
+}

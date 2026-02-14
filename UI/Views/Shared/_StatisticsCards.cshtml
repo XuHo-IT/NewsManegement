@@ -1,0 +1,82 @@
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+    <!-- Total Articles -->
+    <div class="premium-card p-6 relative overflow-hidden">
+        <div class="flex items-center justify-between mb-4">
+            <div class="flex-1 min-w-0">
+                <p class="text-subtle text-xs font-medium mb-1 truncate">Total Articles</p>
+                <div class="text-3xl font-bold text-obsidian" id="statTotal">--</div>
+            </div>
+            <div class="w-12 h-12 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0 ml-3">
+                <span class="text-xl">📰</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Published -->
+    <div class="premium-card p-6 relative overflow-hidden">
+        <div class="flex items-center justify-between mb-4">
+            <div class="flex-1 min-w-0">
+                <p class="text-subtle text-xs font-medium mb-1 truncate">Published</p>
+                <div class="text-3xl font-bold text-emerald-600" id="statPublished">--</div>
+            </div>
+            <div class="w-12 h-12 bg-emerald-50 rounded-lg flex items-center justify-center flex-shrink-0 ml-3">
+                <span class="text-xl">✓</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pending -->
+    <div class="premium-card p-6 relative overflow-hidden">
+        <div class="flex items-center justify-between mb-4">
+            <div class="flex-1 min-w-0">
+                <p class="text-subtle text-xs font-medium mb-1 truncate">Pending</p>
+                <div class="text-3xl font-bold text-yellow-600" id="statPending">--</div>
+            </div>
+            <div class="w-12 h-12 bg-yellow-50 rounded-lg flex items-center justify-center flex-shrink-0 ml-3">
+                <span class="text-xl">⏳</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Draft -->
+    <div class="premium-card p-6 relative overflow-hidden">
+        <div class="flex items-center justify-between mb-4">
+            <div class="flex-1 min-w-0">
+                <p class="text-subtle text-xs font-medium mb-1 truncate">Draft</p>
+                <div class="text-3xl font-bold text-blue-600" id="statDraft">--</div>
+            </div>
+            <div class="w-12 h-12 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0 ml-3">
+                <span class="text-xl">📝</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const token = window.getAuthToken();
+        fetch(window.API_BASE_URL + '/api/reports/statistics/overview', {
+            headers: {
+                ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+            }
+        })
+            .then(response => {
+                if (!response.ok) throw new Error('Failed to load stats');
+                return response.json();
+            })
+            .then(data => {
+                document.getElementById('statTotal').textContent = data.totalArticles || '0';
+                document.getElementById('statPublished').textContent = data.publishedArticles || '0';
+                document.getElementById('statPending').textContent = data.pendingArticles || '0';
+                document.getElementById('statDraft').textContent = data.draftArticles || '0';
+            })
+            .catch(error => {
+                console.error('Error loading stats:', error);
+                // Set default values on error
+                document.getElementById('statTotal').textContent = '0';
+                document.getElementById('statPublished').textContent = '0';
+                document.getElementById('statPending').textContent = '0';
+                document.getElementById('statDraft').textContent = '0';
+            });
+    });
+</script>

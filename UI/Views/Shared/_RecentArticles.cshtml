@@ -1,0 +1,73 @@
+<div class="premium-card rounded-xl overflow-hidden">
+    <div class="px-8 py-6 border-b border-border/50">
+        <h3 class="text-xl font-semibold text-obsidian">Recent Articles</h3>
+    </div>
+    <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+            <thead class="border-b border-border/50">
+                <tr>
+                    <th class="text-left px-8 py-4 font-semibold text-obsidian">Title</th>
+                    <th class="text-left px-8 py-4 font-semibold text-obsidian">Category</th>
+                    <th class="text-left px-8 py-4 font-semibold text-obsidian">Status</th>
+                    <th class="text-left px-8 py-4 font-semibold text-obsidian">Date</th>
+                    <th class="text-left px-8 py-4 font-semibold text-obsidian">Action</th>
+                </tr>
+            </thead>
+            <tbody id="recentArticlesBody">
+                <tr><td colspan="5" class="text-center text-subtle py-8">Loading...</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const token = window.getAuthToken();
+        fetch(window.API_BASE_URL + '/api/news-articles?$orderby=CreatedDate desc&$top=5', {
+            headers: {
+                ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+            }
+        })
+            .then(response => {
+                if (!response.ok) throw new Error('Failed to load articles');
+                return response.json();
+            })
+            .then(data => {
+                // Handle both array and object with recentArticles property
+                const articles = Array.isArray(data) ? data : (data.recentArticles || []);
+                const tbody = document.getElementById('recentArticlesBody');
+                tbody.innerHTML = '';
+                if (articles && articles.length > 0) {
+                    articles.forEach(article => {
+                        const statusMap = {
+                            1: { text: 'Draft', color: 'bg-slate-100 text-slate-700' },
+                            2: { text: 'Pending', color: 'bg-yellow-100 text-yellow-700' },
+                            3: { text: 'Approved', color: 'bg-blue-100 text-blue-700' },
+                            4: { text: 'Published', color: 'bg-emerald-100 text-emerald-700' },
+                            5: { text: 'Archived', color: 'bg-gray-100 text-gray-700' }
+                        };
+                        const status = statusMap[article.newsStatus] || { text: 'Unknown', color: 'bg-gray-100 text-gray-700' };
+                        const date = new Date(article.createdDate).toLocaleDateString();
+                        
+                        tbody.innerHTML += `
+                            <tr class="border-b border-border/30 hover:bg-canvas transition-colors">
+                                <td class="px-8 py-4 text-obsidian font-medium">${article.newsTitle || 'N/A'}</td>
+                                <td class="px-8 py-4 text-subtle">${article.category?.categoryName || 'N/A'}</td>
+                                <td class="px-8 py-4"><span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${status.color}">${status.text}</span></td>
+                                <td class="px-8 py-4 text-subtle text-xs">${date}</td>
+                                <td class="px-8 py-4">
+                                    <a href="/NewsArticles/Details/${article.newsArticleID}" class="text-blue-600 hover:text-blue-800 font-medium text-xs">View →</a>
+                                </td>
+                            </tr>
+                        `;
+                    });
+                } else {
+                    tbody.innerHTML = '<tr><td colspan="5" class="text-center text-subtle py-8">No articles found</td></tr>';
+                }
+            })
+            .catch(error => {
+                console.error('Error loading stats:', error);
+                document.getElementById('recentArticlesBody').innerHTML = '<tr><td colspan="5" class="text-center text-red-600 py-8">Error loading data</td></tr>';
+            });
+    });
+</script>

@@ -1,0 +1,151 @@
+@{
+    ViewData["Title"] = "Create Article";
+}
+
+<div class="row pt-24">
+    <div class="col-lg-8 mx-auto">
+        <h1 class="mb-4">Create New Article</h1>
+
+        <form id="articleForm">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Article Details</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label">Article ID</label>
+                        <input type="text" class="form-control" name="newsArticleID" placeholder="Auto-generated if left empty" readonly>
+                        <small class="text-muted">Article ID will be automatically generated if left empty</small>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Title *</label>
+                        <input type="text" class="form-control" name="newsTitle" placeholder="Article title" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Headline *</label>
+                        <input type="text" class="form-control" name="headline" placeholder="Short headline" maxlength="150" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Content *</label>
+                        <textarea class="form-control" name="newsContent" rows="6" placeholder="Article content" required></textarea>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Category *</label>
+                            <select class="form-select" name="categoryID" required>
+                                <option value="">Select Category</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Source</label>
+                            <input type="text" class="form-control" name="newsSource" placeholder="e.g., Internal">
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Tags</label>
+                        <select class="form-select" name="tagIds" multiple>
+                            <option value="">Select tags</option>
+                        </select>
+                        <small class="text-muted">Hold Ctrl to select multiple</small>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Initial Status</label>
+                        <select class="form-select" name="status" required>
+                            <option value="1">Draft</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-3 d-flex gap-2">
+                <button type="submit" class="btn btn-primary btn-lg">Create Article</button>
+                <a href="@Url.Action("Index")" class="btn btn-outline-secondary btn-lg">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            loadCategories();
+            loadTags();
+        });
+
+        function loadCategories() {
+            fetch(window.API_BASE_URL + '/api/categories')
+                .then(response => response.json())
+                .then(data => {
+                    const select = document.querySelector('select[name="categoryID"]');
+                    if (Array.isArray(data)) {
+                        data.forEach(cat => {
+                            const option = document.createElement('option');
+                            option.value = cat.categoryID;
+                            option.textContent = cat.categoryName;
+                            select.appendChild(option);
+                        });
+                    }
+                });
+        }
+
+        function loadTags() {
+            fetch(window.API_BASE_URL + '/api/tags')
+                .then(response => response.json())
+                .then(data => {
+                    const select = document.querySelector('select[name="tagIds"]');
+                    if (Array.isArray(data)) {
+                        data.forEach(tag => {
+                            const option = document.createElement('option');
+                            option.value = tag.tagID;
+                            option.textContent = tag.tagName;
+                            select.appendChild(option);
+                        });
+                    }
+                });
+        }
+
+        document.getElementById('articleForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            const newsArticleID = formData.get('newsArticleID');
+            const data = {
+                // ✅ FIX: Chỉ gửi newsArticleID nếu có giá trị, nếu không thì để null để tự generate
+                ...(newsArticleID && newsArticleID.trim() ? { newsArticleID: newsArticleID.trim() } : {}),
+                newsTitle: formData.get('newsTitle'),
+                headline: formData.get('headline'),
+                newsContent: formData.get('newsContent'),
+                newsSource: formData.get('newsSource'),
+                categoryID: parseInt(formData.get('categoryID')),
+                status: parseInt(formData.get('status')),
+                tagIds: Array.from(formData.getAll('tagIds')).map(Number)
+            };
+
+            fetch(window.API_BASE_URL + '/api/news-articles', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer @Context.Session.GetString("JwtToken")`
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => {
+                if (response.ok) {
+                    window.location.href = '/NewsArticles/Index';
+                } else {
+                    alert('Error creating article');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred');
+            });
+        });
+    </script>
+}
